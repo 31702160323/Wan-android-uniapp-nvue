@@ -1,0 +1,200 @@
+<template>
+	<!-- 待完善：1.上拉加载更多 2.数据没有缓存 -->
+	<view class="content">
+		<view class="status-bar"></view>
+		<wuc-tab :tabList="tabList" :scrollItemId="scrollItemId" :tabItem="TabCur" @switchTab="swiperChange"></wuc-tab>
+		<swiper :current="TabCur" class="swiper" duration="300" :circular="true" indicator-color="rgba(255,255,255,0)"
+		 indicator-active-color="rgba(255,255,255,0)" @change="swiperChange($event.detail.current)">
+			<swiper-item class="swiper-item" v-for="(tabItem, swiperIndex) in tabList" :key="swiperIndex">
+				<list>
+					<cell v-for="(swiperItem, listIndex) in swiperList[swiperIndex]" :key="listIndex">
+						<view class="list-item" @click.stop="jumpDetailPage(swiperItem)">
+							<view class="list-item-top">
+								<text class="list-item-top-txt">{{ swiperItem.author }}</text>
+								<text class="list-item-top-txt">{{ swiperItem.niceShareDate }}</text>
+							</view>
+
+							<view class="list-item-image">
+								<view v-if="swiperItem.envelopePic != ''">
+									<image :src="swiperItem.envelopePic" mode="scaleToFill" style="width: 120upx; height: 120upx;margin-right: 20upx;"></image>
+								</view>
+								<text class="list-item-title">{{ swiperItem.title }}</text>
+							</view>
+
+							<view class="list-item-bottom">
+								<text class="list-item-chapter">{{ swiperItem.superChapterName + ' . ' + swiperItem.chapterName }}</text>
+								<text class="yticon icon-shoucang" :class="{ shoucang: swiperItem.collect }" @click.stop="favoriteItem($event, listIndex)">{{ '\ue645' }}</text>
+							</view>
+						</view>
+					</cell>
+					<loading @loading="onloading" :display="isLoadMore ? 'show' : 'hide'">
+						<text style="width: 750rpx; height: 100rpx; line-height: 100rpx; text-align: center;">加载更多...</text>
+					</loading>
+				</list>
+			</swiper-item>
+		</swiper>
+	</view>
+</template>
+
+<script>
+	import { getWxarticleChapters } from '../../api/wxarticleChaptersApi.js'
+	import { getWxarticleList } from '../../api/wxarticleListApi.js'
+	import { switchFavorite } from '../../api/favoriteApi.js'
+	
+	export default {
+		data() {
+			return {
+				isLoadMore: false,
+				pagesize: [],
+				TabCur: 0,
+				scrollItemId: '',
+				tabList: [],
+				swiperList: []
+			};
+		},
+		onPullDownRefresh() {
+			this.swiperList[this.TabCur] = [];
+			this.pagesize[this.TabCur] = 1;
+			
+			this.getSwiperItemData(this.TabCur);
+		},
+		async onLoad() {
+			const res = await getWxarticleChapters();
+			
+			if(!res) return;
+
+			this.tabList = res.data;
+
+			this.tabList.forEach(item => {
+				this.swiperList.push([]);
+				this.pagesize.push(1);
+			})
+			
+			this.getSwiperItemData(this.TabCur);
+		},
+		methods: {
+			swiperChange: function(itemId) {
+				this.TabCur = itemId;
+				this.scrollItemId = `item-${itemId - 1}`;
+				
+				if(this.swiperList[itemId].length > 0) return;
+				
+				this.swiperList[itemId] = [];
+				this.pagesize[itemId] = 1;
+				
+				this.getSwiperItemData(this.TabCur);
+			},
+			onloading: function() {
+				this.isLoadMore = true;
+				this.pagesize[this.TabCur]++;
+				this.getSwiperItemData(this.TabCur, this.pagesize[this.TabCur]);
+			},
+			getSwiperItemData: function(index, pagesize) {
+				getWxarticleList(this.tabList[index].id, pagesize).then(listRes => {
+					
+					this.$set(this.swiperList, index, this.swiperList[index].concat(listRes.data.datas));
+					
+					uni.stopPullDownRefresh();
+					this.isLoadMore = false;
+				}).catch(error => {
+					console.log(error);
+					uni.stopPullDownRefresh();
+					this.isLoadMore = false;
+				});
+			},
+			jumpDetailPage: function(item) {
+				uni.navigateTo({
+					url: '/pages/detailPage/detailPage?url=' + item.link + '&title=' + item.title
+				});
+			},
+			//收藏
+			favoriteItem: function(event, index) {
+				
+				event.stopPropagation();
+
+				this.datalist = this.swiperList[this.TabCur];
+				
+				//通知后台收藏或取消收藏
+				switchFavorite(this.datalist[index].collect, this.datalist[index].id).then(res => {
+					console.log(res);
+					if(!res) return;
+					this.datalist[index].collect = !this.datalist[index].collect;
+				});
+			}
+		}
+	};
+</script>
+
+<style lang="scss">
+	.status-bar {
+		background-color: #0081ff;
+	}
+
+	.content {
+		flex: 1;
+		background-color: #eeeeee;
+	}
+
+	.swiper {
+		flex: 1;
+	}
+
+	.swiper-item {
+		align-items: center;
+	}
+
+	.list-item {
+		width: 710rpx;
+		flex: 1;
+		padding: 20rpx;
+		margin: 20rpx;
+		border-radius: 16rpx;
+		background-color: white;
+	}
+
+	.list-item-top {
+		flex-direction: row;
+		justify-content: space-between;
+		margin-bottom: 20rpx;
+	}
+
+	.list-item-top-txt {
+		font-size: 25rpx;
+		color: #999999;
+	}
+
+	.list-item-image {
+		flex-direction: row;
+	}
+
+	.list-item-title {
+		flex: 1;
+		font-size: 30rpx;
+		color: $uni-text-color;
+	}
+
+	.list-item-bottom {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.load-more {
+		margin: 10rpx;
+		text-align: center;
+	}
+
+	.shoucang {
+		color: #ff0000;
+	}
+
+	.list-item-chapter {
+		margin-top: 10rpx;
+		font-size: 25rpx;
+		color: #999999;
+	}
+
+	.text-common {
+		font-size: 32rpx;
+	}
+</style>

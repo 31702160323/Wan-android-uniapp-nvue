@@ -1,0 +1,24 @@
+<template>
+	<web-view :src="url" style="width: 750rpx; flex: 1;"></web-view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				url:"http://www.baidu.com"
+			}
+		},
+		onLoad(options) {
+			console.log("detail==par=="+JSON.stringify(options));
+			this.url = decodeURIComponent(options.url);
+			
+			uni.setNavigationBarTitle({
+				title: options.title
+			})
+		},
+		methods: {
+			
+		}
+	}
+</script>

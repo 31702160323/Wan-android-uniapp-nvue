@@ -1,0 +1,235 @@
+<template>
+	<view style="flex: 1;">
+		<view class="content" v-if="dataList.length == 0">
+			<image class="empty-image" src="/static/load_empty.png"></image>
+			<text>暂时没有数据</text>
+			<text class="repeat" @click="repeat">点击我重试</text>
+		</view>
+		<view class="content-list" v-else>
+			<view class="item" :class="[item.status==1? 'item-finish-style' : '']" v-for="(item, index) in dataList" :key="index"
+			 @click="itemOnclick(item)">
+				<view class="top">
+					<text class="item-title">{{ item.title }}</text>
+				</view>
+				<text class="item-priorty">{{ '优先级：' + (typeList[item.priority - 1] == undefined ? '未定义' : typeList[item.priority - 1]) }}</text>
+
+				<text class="middle">{{ item.content }}</text>
+
+				<view v-if="item.status == 1" class="item-finish">
+					<image style="width: 100rpx; height: 100rpx;" src="/static/ic_done.png"></image>
+				</view>
+
+				<view class="bottom">
+					<text class="bottom-txt">{{ '类别：' + (sortList[item.type - 1] == undefined ? '未定义' : sortList[item.type - 1]) }}</text>
+					<text class="bottom-txt">{{ item.dateStr }}</text>
+				</view>
+
+			</view>
+		</view>
+
+		<uni-popup ref="popup" type="dialog" :maskClick="false">
+			<view style="width: 600rpx; background-color: #FFFFFF; border-radius: 15rpx;">
+				<text style="padding: 20rpx; text-align: center;">提示</text>
+				<radio-group class="dialog-content" @change="dialogItemSelect">
+					<label class="dialon-item">
+						<radio value="编辑" /><text>编辑</text>
+					</label>
+					<label class="dialon-item">
+						<radio value="删除" /><text>删除</text>
+					</label>
+					<label class="dialon-item">
+						<radio value="完成" /><text>完成</text>
+					</label>
+				</radio-group>
+				<view style="flex-direction: row;">
+					<text style="padding: 20rpx; flex: 1; text-align: center; color: #808080;" @click="$refs.popup.close()">取消</text>
+					<text style="padding: 20rpx; flex: 1; text-align: center;" @click="bindBtn">确定</text>
+				</view>
+			</view>
+		</uni-popup>
+	</view>
+</template>
+
+<script>
+	import {
+		todoList,
+		deleting,
+		done
+	} from '../../api/todoApi.js'
+
+	export default {
+		data() {
+			return {
+				item: {},
+				dialogSelect: 'hello',
+				dataList: [],
+				typeList: ['重要且紧急', '重要不紧急', '紧急但不重要', '不重要不紧急'],
+				sortList: ['工作', '生活', '娱乐']
+			};
+		},
+		onNavigationBarButtonTap(e) {
+			const index = e.index;
+			if (index === 0) {
+				uni.navigateTo({
+					url: '/pages/todoDetail/todoDetail'
+				});
+			}
+		},
+		onShow() {
+			this.getDataList();
+		},
+		methods: {
+			repeat: function() {
+				this.getDataList();
+			},
+			getDataList: function() {
+				todoList().then(res => {
+					this.dataList = res.data.datas;
+				});
+			},
+			itemOnclick: function(item) {
+				this.item = item;
+
+				this.$refs.popup.open();
+			},
+			bindBtn: function(type) {
+				console.log('confirm===' + this.dialogSelect);
+				if (this.dialogSelect == '删除') {
+					console.log('item-select-delete');
+					this.deleteItem(this.item.id);
+				} else if (this.dialogSelect == '完成') {
+					this.finishItem(this.item);
+				} else {
+					this.updateItem(this.item);
+				}
+				this.dialogSelect = 'hello';
+				this.$refs.popup.close();
+			},
+			dialogItemSelect: function(e) {
+				this.dialogSelect = e.detail.value;
+			},
+			deleteItem: function(id) {
+				deleting(id).then(res => {
+					this.getDataList()
+				});
+			},
+			updateItem: function(item) {
+				console.log('item==' + JSON.stringify(item));
+				uni.navigateTo({
+					url: '/pages/todoDetail/todoDetail?item=' + JSON.stringify(item)
+				});
+			},
+			finishItem: function(item) {
+				done(item.id, {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+				}, {
+					status: 1
+				}).then(res => {
+					this.getDataList()
+				}).catch(error => {
+					uni.showToast({
+						title: '提交失败，请稍后再试',
+						icon: 'none'
+					});
+				});
+			}
+		}
+	};
+</script>
+
+<style>
+	.content {
+		/* position: absolute;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column; */
+		flex: 1;
+		justify-content: center;
+		align-items: center;
+		background-color: #f8f8f8;
+	}
+
+	.content-list {
+		flex: 1;
+		background-color: #f8f8f8;
+	}
+
+	.empty-image {
+		margin: 20rpx;
+		width: 180rpx;
+		height: 180rpx;
+	}
+
+	.repeat {
+		margin-top: 20rpx;
+		font-size: 30rpx;
+		color: #808080;
+	}
+
+	.item {
+		background-color: white;
+		border-radius: 15rpx;
+		margin: 30rpx;
+		padding: 20rpx;
+		/* display: flex;
+	flex-direction: column;
+	box-shadow: 5px 5px 8px #c0c0c0; */
+	}
+
+	.top {
+		/* display: flex; */
+		flex-direction: row;
+		justify-content: space-between;
+		color: #999999;
+		font-size: 30rpx;
+	}
+
+	.item-title {
+		color: #0081ff;
+	}
+
+	.item-priorty {
+		color: red;
+		font-size: 25rpx;
+		margin-top: 20rpx;
+	}
+
+	.middle {
+		margin-top: 20rpx;
+		margin-bottom: 20rpx;
+		font-size: 25rpx;
+	}
+
+	.bottom {
+		/* display: flex; */
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.bottom-txt {
+		font-size: 25rpx;
+		color: #999999;
+	}
+
+	.dialog-content {
+		/* display: flex;
+	flex-direction: column; */
+		padding: 20rpx;
+	}
+
+	.dialon-item {
+		padding: 20rpx;
+		flex-direction: row;
+	}
+
+	.item-finish {
+		position: relative;
+		margin-top: -100rpx;
+		margin-left: 300rpx;
+	}
+
+	.item-finish-style {
+		opacity: 0.5;
+	}
+</style>

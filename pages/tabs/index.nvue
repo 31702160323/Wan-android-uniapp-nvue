@@ -1,0 +1,181 @@
+<template>
+	<list class="content" show-scrollbar="false">
+		<cell>
+			<swiper class="swiper" autoplay="true" indicator-dots="true" indicator-color="gray">
+				<swiper-item class="swiper-item" v-for="(item, index) in bannerlist" :key="index">
+					<image :src="item.imagePath" mode="widthFix" style="width: 100%;" fade-show="false" />
+				</swiper-item>
+			</swiper>
+		</cell>
+
+		<cell v-for="(item, index) in datalist" :key="index" style="width: 750rpx; align-items: center;">
+			<view class="list-item" @click="jumpDetailPage(item)" :style="opacity[index]" @appear="opacity[index].opacity = 1">
+				<view class="list-item-top">
+					<text class="list-item-top-txt">{{ item.author }}</text>
+					<text class="list-item-top-txt">{{ item.niceShareDate }}</text>
+				</view>
+
+				<view class="list-item-image">
+					<view v-if="item.envelopePic != ''">
+						<image :src="item.envelopePic" mode="scaleToFill" style="width: 120rpx; height: 120rpx;margin-right: 20rpx;"></image>
+					</view>
+					<text decode="true" class="list-item-title">{{ item.title }}</text>
+				</view>
+
+				<view class="list-item-bottom">
+					<text class="list-item-chapter">{{ item.superChapterName + ' . ' + item.chapterName }}</text>
+					<text class="yticon icon-shoucang" :class="{ shoucang: item.collect }" @click.stop="favoriteItem(index)">{{ '\ue645' }}</text>
+				</view>
+			</view>
+		</cell>
+		<loading @loading="onloading" :display="isLoadMore ? 'show' : 'hide'">
+			<text style="width: 750rpx; height: 100rpx; line-height: 100rpx; text-align: center;">加载更多...</text>
+		</loading>
+	</list>
+</template>
+
+<script>
+	import { getBanner } from '../../api/bannerApi.js'
+	import { getArticleList } from '../../api/articleListApi.js'
+	import { switchFavorite } from '../../api/favoriteApi.js'
+
+	export default {
+		data() {
+			return {
+				favorite: false,
+				isLoadMore: false,
+				pagesize: 1,
+				bannerlist: [],
+				datalist: [],
+				opacity: [],
+			};
+		},
+		onLoad() {
+			this.loadData();
+		},
+		onPullDownRefresh() {
+			this.loadData();
+		},
+		methods: {
+			loadData: function() {
+				//获取首页banner
+
+				getBanner().then(res => {
+					this.bannerlist = res.data;
+				});
+				
+				this.datalist = [];
+
+				//获取首页文章列表
+				this.loadListData();
+			},
+			onloading: function() {
+				if (this.isLoadMore) return;
+
+				this.isLoadMore = true;
+				this.loadListData(this.pagesize);
+			},
+			loadListData: function(pagesize) {
+				//获取首页文章列表
+				getArticleList(pagesize).then(res => {
+					for (let i = 0, len = res.data.datas.length; i < len; i++) {
+						this.opacity.push({
+							opacity: 0
+						})
+					}
+					this.datalist = this.datalist.concat(res.data.datas);
+					this.pagesize++;
+					
+					this.isLoadMore = false;
+					uni.stopPullDownRefresh();
+				}).catch( error => {
+					this.isLoadMore = false;
+					uni.stopPullDownRefresh();
+				});
+			},
+			jumpDetailPage: function(item) {
+				uni.navigateTo({
+					url: `/pages/detailPage/detailPage?title=${item.title}&url=${encodeURIComponent(item.link)}`
+				});
+			},
+			//收藏
+			favoriteItem: function(index) {
+				this.datalist[index].collect = !this.datalist[index].collect;
+				//通知后台收藏或取消收藏
+				switchFavorite(this.datalist[index].collect, this.datalist[index].id);
+			}
+		}
+	};
+</script>
+
+<style lang="scss">
+	.content {
+		align-items: center;
+		// justify-content: center;
+		background-color: #eeeeee;
+	}
+
+	.swiper {
+		width: 750rpx;
+		height: 380rpx;
+	}
+
+	.swiper-item {
+		width: 750rpx;
+		flex: 1;
+	}
+
+	.list-item {
+		width: 660rpx;
+		position: relative;
+		flex-direction: column;
+		padding: 20rpx;
+		margin-top: 20rpx;
+		margin-left: 20rpx;
+		margin-right: 20rpx;
+		border-radius: 16rpx;
+		background-color: white;
+		box-shadow: 5px 5px 10px #c8c7cc;
+
+		transition: opacity .6s ease;
+	}
+
+	.list-item-top {
+		flex-direction: row;
+		justify-content: space-between;
+		margin-bottom: 20rpx;
+	}
+
+	.list-item-top-txt {
+		font-size: 25rpx;
+		color: #999999;
+	}
+
+	.list-item-image {
+		flex-direction: row;
+	}
+
+	.list-item-title {
+		position: relative;
+		font-size: 30rpx;
+		flex: 1;
+		color: $uni-text-color;
+		/* display: inline-block; */
+	}
+
+	.list-item-bottom {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.shoucang {
+		color: #ff0000;
+	}
+
+	.list-item-chapter {
+		margin-top: 10rpx;
+		font-size: 25rpx;
+		color: #999999;
+	}
+</style>

@@ -1,0 +1,148 @@
+<template>
+	<view class="content">
+		<view class="status-bar"></view>
+		<wuc-tab :tabList="tabList" :scrollItemId="scrollItemId" :tabItem="TabCur" @switchTab="tabChange"></wuc-tab>
+		<swiper
+			:current="TabCur"
+			class="swiper"
+			duration="300"
+			:circular="true"
+			indicator-color="rgba(255,255,255,0)"
+			indicator-active-color="rgba(255,255,255,0)"
+			@change="swiperChange($event.detail.current)"
+		>
+			<swiper-item class="swiper-item">
+				<list>
+					<cell class="navigation" v-for="(systemItem, systemIndex) in systemList" :key="systemIndex">
+						<text class="navigation-name">{{ systemItem.name }}</text>
+						<view style="flex-direction: row; flex-wrap: wrap;">
+							<text @click.stop="jumpSystemList(detailIndex,systemItem.name,systemItem.children)" class="detail-name" v-for="(systemDetail, detailIndex) in systemItem.children" :key="detailIndex">{{ systemDetail.name }}</text>
+						</view>
+					</cell>
+				</list>
+			</swiper-item>
+			<swiper-item class="swiper-item">
+				<list>
+					<cell class="navigation" v-for="(navigationItem, navigationIndex) in navigationList" :key="navigationIndex">
+						<text class="navigation-name">{{ navigationItem.name }}</text>
+						<view style="flex-direction: row; flex-wrap: wrap;">
+						<text decode="true" class="detail-name" v-for="(navigationDetail, detailIndex) in navigationItem.articles" :key="detailIndex" @tap="jumpDetailPage(navigationDetail)">{{ navigationDetail.title }}</text>
+						</view>
+					</cell>
+				</list>
+			</swiper-item>
+		</swiper>
+	</view>
+</template>
+
+<script>
+import WucTab from '@/components/wuc-tab/wuc-tab.vue';
+import { navi, tree } from '../../api/system.js'
+
+export default {
+	data() {
+		return {
+			TabCur: 0,
+			scrollItemId: '',
+			tabList: [{ name: '体系' }, { name: '导航' }],
+			systemList: [],
+			navigationList: []
+		};
+	},
+	components: { WucTab },
+	onLoad() {
+		this.getSystemData();
+	},
+	methods: {
+		swiperChange: function(itemId) {
+			this.TabCur = itemId;
+			this.scrollItemId = `item-${itemId - 1}`;
+
+			if (this.TabCur === 1) {
+				if(this.navigationList.length > 0) return;
+				
+				this.getNavigationData();
+			}else{
+				if(this.systemList.length > 0) return;
+				
+				this.getSystemData();
+			}
+		},
+		jumpDetailPage: function(item) {
+			console.log(item.link);
+			uni.navigateTo({
+				url: '/pages/detailPage/detailPage?url=' + encodeURIComponent(item.link) + '&title=' + item.title
+			});
+		},
+		jumpSystemList: function(index,title,tabList){
+			uni.navigateTo({
+				url:"/pages/systemList/systemList?index="+index+"&title="+title+"&tabList="+encodeURIComponent(JSON.stringify(tabList)) 
+			})
+		},
+		getNavigationData: async function() {
+			const res = await navi();
+			
+			if(!res) return;
+			
+			this.navigationList = res.data;
+		},
+		getSystemData: async function(){
+			const res = await tree();
+			
+			if(!res) return;
+			
+			this.systemList = res.data;
+		}
+	}
+};
+</script>
+
+<style>
+.status-bar {
+	/* height: var(--status-bar-height); */
+	/* width: 100%; */
+	background-color: #0081ff;
+}
+.content {
+	flex: 1;
+	/* position: absolute; */
+	/* width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column; */
+	background-color: #eeeeee;
+	/* box-sizing: border-box; */
+}
+.tab-layout {
+	background-color: #0081ff;
+	text-align: center;
+	color: #ffffff;
+}
+.text-common {
+	font-size: 32upx;
+}
+.swiper {
+	/* display: flex; */
+	flex: 1;
+}
+.swiper-item {
+	flex: 1;
+	/* overflow-y: scroll; */
+	background-color: white;
+}
+.navigation {
+	/* clear: both; */
+}
+.navigation-name {
+	padding: 10upx;
+	font-size: 35upx;
+}
+.detail-name {
+	margin: 10upx;
+	background-color: #f1f1f1;
+	border-radius: 15upx;
+	padding: 10upx;
+	font-size: 30upx;
+	color: #808080;
+}
+</style>

@@ -1,0 +1,144 @@
+{
+	"pages": [{
+		"path": "pages/tabs/index",
+		"style": {
+			"navigationBarTitleText": "首页",
+			"enablePullDownRefresh": true
+		}
+	}, {
+		"path": "pages/login/login",
+		"style": {
+			"navigationBarTitleText": "",
+			"enablePullDownRefresh": false
+		}
+
+	}, {
+		"path": "pages/tabs/project",
+		"style": {
+			"navigationStyle": "custom",
+			"enablePullDownRefresh": false,
+			"onReachBottomDistance": 200
+		}
+
+	}, {
+		"path": "pages/tabs/system",
+		"style": {
+			"navigationStyle": "custom"
+		}
+
+	}, {
+		"path": "pages/tabs/account",
+		"style": {
+			"navigationStyle": "custom",
+			"enablePullDownRefresh": false,
+			"onReachBottomDistance": 200
+		}
+
+	}, {
+		"path": "pages/tabs/mine",
+		"style": {
+			"navigationBarTitleText": "",
+			"enablePullDownRefresh": false
+		}
+
+	}, {
+		"path": "pages/register/register",
+		"style": {
+			"navigationBarTitleText": "注册"
+		}
+
+	}, {
+		"path": "pages/setting/setting",
+		"style": {
+			"navigationBarTitleText": "系统设置"
+		}
+
+	}, {
+		"path": "pages/favorite/favorite",
+		"style": {
+			"navigationBarTitleText": "我的收藏",
+			"enablePullDownRefresh": true
+		}
+	}, {
+		"path": "pages/detailPage/detailPage",
+		"style": {}
+	}, {
+		"path": "pages/systemList/systemList",
+		"style": {
+			"navigationStyle": "custom"
+		}
+	}, {
+		"path": "pages/integral/integral",
+		"style": {
+			"navigationBarTitleText": "我的积分"
+		}
+	}, {
+		"path": "pages/todo/todo",
+		"style": {
+			"navigationBarTitleText": "待办清单",
+			"app-plus": {
+				"titleNView": {
+
+					"buttons": [{
+						"fontSrc": "/static/font/yticon.ttf",
+						"text": "\ue60a",
+						"fontSize": "24",
+						"color": "#FFFFFF",
+						"width": "30px",
+						"float": "right",
+						"background": "rgba(0,0,0,0)"
+					}]
+				}
+			}
+		}
+	}, {
+		"path": "pages/todoDetail/todoDetail",
+		"style": {
+			"navigationBarTitleText": "编辑待办清单"
+		}
+	}],
+	"tabBar": {
+		"color": "#000000",
+		"selectedColor": "#007AFF",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [{
+				"pagePath": "pages/tabs/index",
+				"iconPath": "static/menu_main.png",
+				"selectedIconPath": "static/menu_main.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/tabs/project",
+				"iconPath": "static/menu_project.png",
+				"selectedIconPath": "static/menu_project.png",
+				"enablePullDownRefresh": true,
+				"text": "项目"
+			},
+			{
+				"pagePath": "pages/tabs/system",
+				"iconPath": "static/menu_tree.png",
+				"selectedIconPath": "static/menu_tree.png",
+				"text": "体系"
+			},
+			{
+				"pagePath": "pages/tabs/account",
+				"iconPath": "static/menu_public.png",
+				"selectedIconPath": "static/menu_public.png",
+				"text": "公众号"
+			},
+			{
+				"pagePath": "pages/tabs/mine",
+				"iconPath": "static/menu_me.png",
+				"selectedIconPath": "static/menu_me.png",
+				"text": "我的"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "wanAndroid",
+		"navigationBarBackgroundColor": "#0081FF"
+		// "backgroundColor": "#0081FF"
+	}
+}
