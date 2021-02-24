@@ -26,12 +26,14 @@
 		<view class="line"></view>
 
 		<text class="tab">关于</text>
-		<text class="title">版本</text>
-		<text class="describe">当前版本1.0.0</text>
-		<text class="title">作者</text>
+		<text class="title">项目说明</text>
+		<text class="describe">该项目是二开项目，我是把原来的项目的页面由vue页面改成nvue页面，再从代码进行了我自己认为的优化</text>
+		<text class="title">原作者</text>
 		<text class="describe">Darshan1358</text>
 		<text class="title">项目源码</text>
 		<text class="describe">https://github.com/darshan1358/wan-android</text>
+		<text class="title">版本</text>
+		<text class="describe">当前版本1.0.0</text>
 		<text class="title">版权声明</text>
 		<text class="describe">仅作个人及非商业用途</text>
 
